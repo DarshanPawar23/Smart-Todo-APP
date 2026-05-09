@@ -79,7 +79,7 @@ export const login = (req, res) => {
 
 export const addTodo = (req, res) => {
 
-    const {title} = req.body;
+    const { title } = req.body;
 
     const userId = req.user.id;
 
@@ -89,7 +89,7 @@ export const addTodo = (req, res) => {
     `;
     db.query(query, [title, userId], (err, result) => {
 
-        if(err){
+        if (err) {
             return res.status(500).json(err);
         }
 
@@ -98,4 +98,117 @@ export const addTodo = (req, res) => {
         });
 
     });
+};
+
+export const getTodos = (req, res) => {
+
+    const userId = req.user.id;
+
+    const query = `
+        SELECT * FROM todos
+        WHERE user_id = ?
+        ORDER BY id DESC
+    `;
+
+    db.query(query, [userId], (err, result) => {
+
+        if (err) {
+            return res.status(500).json(err);
+        }
+
+        res.status(200).json(result);
+
+    });
+
+};
+
+export const deleteTodo = (req, res) => {
+
+    const todoId = req.params.id;
+
+    const query = `
+        DELETE FROM todos
+        WHERE id = ?
+    `;
+
+    db.query(query, [todoId], (err, result) => {
+
+        if(err){
+            return res.status(500).json(err);
+        }
+
+        res.status(200).json({
+            message: "Todo Deleted"
+        });
+
+    });
+
+};
+
+export const completeTodo = (req, res) => {
+
+    const todoId = req.params.id;
+
+    const query = `
+        UPDATE todos
+        SET completed = true
+        WHERE id = ?
+    `;
+
+    db.query(query, [todoId], (err, result) => {
+
+        if(err){
+            return res.status(500).json(err);
+        }
+
+        res.status(200).json({
+            message: "Todo Completed"
+        });
+
+    });
+
+};
+
+export const filterTodos = (req, res) => {
+
+    const status = req.params.status;
+
+    const userId = req.user.id;
+
+    let query = "";
+
+    if(status === "completed"){
+
+        query = `
+            SELECT * FROM todos
+            WHERE completed = true
+            AND user_id = ?
+        `;
+
+    }
+    else if(status === "pending"){
+
+        query = `
+            SELECT * FROM todos
+            WHERE completed = false
+            AND user_id = ?
+        `;
+
+    }
+    else{
+
+        query = `
+            SELECT * FROM todos
+            WHERE user_id = ?
+        `;
+    }
+    db.query(query, [userId], (err, result) => {
+
+        if(err){
+            return res.status(500).json(err);
+        }
+        res.status(200).json(result);
+
+    });
+
 };
